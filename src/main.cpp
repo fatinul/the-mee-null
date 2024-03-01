@@ -2,6 +2,9 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include <filesystem>
+#include <vector>
+#include <algorithm>
 
 #include <memory> // for allocator, __shared_ptr_access
 #include <string> // for char_traits, operator+, string, basic_string
@@ -13,6 +16,32 @@
 #include "ftxui/component/screen_interactive.hpp" // for Component, ScreenInteractive
 #include "ftxui/dom/elements.hpp"                 // for text, hbox, separator, Element, operator|, vbox, border
 #include "ftxui/util/ref.hpp"                     // for Ref
+
+auto logo() {
+    using namespace ftxui;
+
+    return vbox({
+       text(R"(                         ╔─╶╶╶╶╶╶╶╶ ──╗)"), 
+       text(R"(                        ╔╝      ░░░░░▦│)"), 
+       text(R"(                      ╒─╝          ░░▮╚╗)"), 
+       text(R"(                      ▌▌ ▂ ▂▂▂▂▂▂    ░░│)"), 
+       text(R"(                      ╘╍▂▂▂▂▂▂▂▂ ▓   ░═▀▀╗)"), 
+       text(R"(                       │░░╿ ╭╯░░░    ▊   │)"), 
+       text(R"(                      ╔─╝▗▘ ▞        ▊░  ╚╗)"), 
+       text(R"(                      ▌│ ▌  ░   ░░░  ▊░  ░│)"), 
+       text(R"(                      ▝▖░▌   ▔▲▒  ▒▒▒▊▒░ ▲│)"), 
+       text(R"(                      ╔▌ ▝▀▀▀▀▀   ▒░  ▊▒ ╔╝)"), 
+       text(R"(                      ▌ ▃▃▃▃▃▃   ░░   ╔──╝)"), 
+       text(R"(                     ▗▘▀▒░░░░░▀ ░░   ░│)"), 
+       text(R"(                     ▌│▂▂     ▂▂▂│ ░░░│)"), 
+       text(R"(                     ▝▀───────────────╝)"), 
+       text(R"(                - .... . -- . . -. ..- .-.. .-..)"), 
+       text(R"( _____ _  _ ___         __  __ ___ ___         _  _ _   _ _    _)"), 
+       text(R"(|_   _| || | __|  ___  |  \/  | __| __|  ___  | \| | | | | |  | |)"), 
+       text(R"(  | | | __ | _|  |___| | |\/| | _|| _|  |___| | .` | |_| | |__| |__)"), 
+       text(R"(  |_| |_||_|___|       |_|  |_|___|___|       |_|\_|\___/|____|____|)"), 
+    });
+}
 
 class TheMeeNullMarkers {
     public:
@@ -51,7 +80,7 @@ void deleteTheMeeNullMarkers(std::string bashrc_path)
 int main()
 {
     using namespace ftxui;
-    auto screen = ScreenInteractive::FitComponent();
+    auto screen = ScreenInteractive::Fullscreen();
 
     // Markers
     TheMeeNullMarkers markers;
@@ -59,18 +88,30 @@ int main()
     // The data:
     std::string welcome_text;
     std::string welcome_font;
+    std::vector <std::string> welcome_font_entries;
     std::string bashrc_content;
     std::string modified_bashrc_content;
     std::string log;
     std::string lolcat_status;
 
     int lolcat_selected = 0;
+    int welcome_font_selected = 0;
 
     // lolcat entries
     std::vector<std::string> lolcat_entries = {
         "Yes",
         "No",
     };
+
+    // Get the font entries
+    for (const auto& entry : std::filesystem::directory_iterator("/usr/share/figlet")) {
+        if(entry.path().extension() == ".tlf" || entry.path().extension() == ".flf"){
+            welcome_font_entries.push_back(entry.path().filename().string());
+        }
+    }
+
+    // Sort the font entries
+    std::sort(welcome_font_entries.begin(), welcome_font_entries.end());
 
     // Get the home directory
     const char* home_dir = getenv("HOME");
@@ -101,9 +142,10 @@ int main()
     // The basic input components:
     auto input_welcome_text = Input(&welcome_text, "Type text you want when first open terminal here");
     auto input_welcome_font = Input(&welcome_font, "Type name of font you want for welcoming message here");
-    auto button_cancel = Button("Cancel", screen.ExitLoopClosure());
+    auto button_cancel = Button("Cancel [ctrl + c]", screen.ExitLoopClosure());
     auto button_save = Button("Save", on_save_button);
     auto toggle_lolcat = Toggle(&lolcat_entries, &lolcat_selected);
+    auto menu_welcome_font = Menu(&welcome_font_entries, &welcome_font_selected);
 
     // The component tree:
     auto component = Container::Vertical({
@@ -112,13 +154,17 @@ int main()
         button_cancel,
         button_save,
         toggle_lolcat,
+        menu_welcome_font,
     });
 
     // Tweak how the component tree is rendered:
     auto renderer = Renderer(component, [&]
                              {
+                                // Get the selected font name
+                                welcome_font = welcome_font_entries[welcome_font_selected];
+
                                 // Modify the .bashrc file:
-                                modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f " + welcome_font + " \"" + welcome_text + "\"";
+                                modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f '" + welcome_font  + "' \"" + welcome_text + "\"";
 
                                 // toggle lolcat
                                 if(!lolcat_selected){
@@ -129,14 +175,21 @@ int main()
                                 }
                                 
                                 return vbox({
-                                        text("Welcome to THE-MEE-NULL") | border,
-                                        hbox(text(" Text : "), input_welcome_text->Render()),
-                                        hbox(text(" Font name  : "), input_welcome_font->Render()),
-                                        hbox(text(" lolcat  : "), toggle_lolcat->Render()),
-                                        hbox(button_cancel->Render(),button_save->Render()),
+                                        hbox(filler(), button_cancel->Render()),
+                                        hbox({
+                                            filler(), logo(), filler(),
+                                        }),
+                                        window(text("Welcome text"), 
+                                            vbox({
+                                                hbox(text(" Text : "), input_welcome_text->Render()),
+                                                hbox(text(" lolcat  : "), toggle_lolcat->Render()),
+                                                hbox(text(" Font : "), menu_welcome_font->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10) | border),
+                                            })
+                                        ),
+                                        button_save->Render(),
                                         separator(),
                                         hbox(text("log : "),vbox(text(log))),
-                                        hbox(text("command append : figlet -f " + welcome_font + " \"" + welcome_text + "\"" + lolcat_status)),
+                                        hbox(text("command append : figlet -f '" + welcome_font + "' \"" + welcome_text + "\"" + lolcat_status)),
                                     }) |
                                     border; });
 
