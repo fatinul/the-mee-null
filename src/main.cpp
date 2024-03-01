@@ -14,10 +14,47 @@
 #include "ftxui/dom/elements.hpp"                 // for text, hbox, separator, Element, operator|, vbox, border
 #include "ftxui/util/ref.hpp"                     // for Ref
 
+class TheMeeNullMarkers {
+    public:
+        static const std::string themeenull_start;
+        static const std::string themeenull_end;
+        bool inTargetSection;
+};
+
+const std::string TheMeeNullMarkers::themeenull_start = "#################### THE-MEE-NULL ####################";
+const std::string TheMeeNullMarkers::themeenull_end = "######################### END ########################";
+
+void deleteTheMeeNullMarkers(std::string bashrc_path)
+{
+    std::ifstream inFile(bashrc_path);
+    std::ofstream outFile(bashrc_path + ".tmp");
+    std::string line;
+    bool deleting = false;
+
+    if (inFile.is_open() && outFile.is_open()) {
+        while (std::getline(inFile, line)) {
+            if (line.find(TheMeeNullMarkers::themeenull_start) != std::string::npos) {
+                deleting = true;
+            } else if (line.find(TheMeeNullMarkers::themeenull_end) != std::string::npos) {
+                deleting = false;
+            } else if (!deleting) {
+                outFile << line << "\n";
+            }
+        }
+        inFile.close();
+        outFile.close();
+        std::remove(bashrc_path.c_str());
+        std::rename((bashrc_path + ".tmp").c_str(), bashrc_path.c_str());
+    }
+}
+
 int main()
 {
     using namespace ftxui;
     auto screen = ScreenInteractive::FitComponent();
+
+    // Markers
+    TheMeeNullMarkers markers;
 
     // The data:
     std::string welcome_text;
@@ -26,7 +63,6 @@ int main()
     std::string modified_bashrc_content;
     std::string log;
 
-    // Get home directory:
     const char* home_dir = getenv("HOME");
     if(home_dir == nullptr){
         log = "Error: Unable to get home directory";
@@ -38,10 +74,12 @@ int main()
 
     // The save button action:
     auto on_save_button = [&] {
-        // Write the modified content to .bashrc file:
+        deleteTheMeeNullMarkers(bashrc_path);
+
         std::ofstream outFile(bashrc_path, std::ios::app);
         if(outFile.is_open()){
-            outFile << modified_bashrc_content << "\n";
+            // Write the modified content to .bashrc file:
+            outFile << TheMeeNullMarkers::themeenull_start << "\n" << modified_bashrc_content << "\n" << TheMeeNullMarkers::themeenull_end << "\n";
             outFile.close();
             log = "Successful!";
         } else {
@@ -64,28 +102,22 @@ int main()
         button_save,
     });
 
-    // log the bashrc path:
-    log = bashrc_path;
-
-
     // Tweak how the component tree is rendered:
     auto renderer = Renderer(component, [&]
                              {
+                                // Modify the .bashrc file:
+                                modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f " + welcome_font + " \"" + welcome_text + "\"\n";
                                 
-    // Modify the .bashrc file:
-    modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f " + welcome_font + " \"" + welcome_text + "\"\n";
-                                
-                                
-                                 return vbox({
-                                          text("Welcome to THE-MEE-NULL") | border,
-                                          hbox(text(" Text : "), input_welcome_text->Render()),
-                                          hbox(text(" Font name  : "), input_welcome_font->Render()),
-                                          hbox(button_cancel->Render(),button_save->Render()),
-                                          separator(),
-                                          hbox(text("log : "),text(log)),
-                                          hbox(text("command append : figlet -f " + welcome_font + " \"" + welcome_text + "\"")),
-                                      }) |
-                                      border; });
+                                return vbox({
+                                        text("Welcome to THE-MEE-NULL") | border,
+                                        hbox(text(" Text : "), input_welcome_text->Render()),
+                                        hbox(text(" Font name  : "), input_welcome_font->Render()),
+                                        hbox(button_cancel->Render(),button_save->Render()),
+                                        separator(),
+                                        hbox(text("log : "),vbox(text(log))),
+                                        hbox(text("command append : figlet -f " + welcome_font + " \"" + welcome_text + "\"")),
+                                    }) |
+                                    border; });
 
     screen.Loop(renderer);
 }
