@@ -80,7 +80,7 @@ void deleteTheMeeNullMarkers(std::string bashrc_path)
 int main()
 {
     using namespace ftxui;
-    auto screen = ScreenInteractive::Fullscreen();
+    auto screen = ScreenInteractive::TerminalOutput();
 
     // Markers
     TheMeeNullMarkers markers;
@@ -93,14 +93,31 @@ int main()
     std::string modified_bashrc_content;
     std::string log;
     std::string lolcat_status;
+    std::string ls = "ls";
+    std::string ls_compact_status;
+    std::string ls_color_status;
 
     int lolcat_selected = 0;
     int welcome_font_selected = 0;
+    int ls_compact_selected = 0;
+    int ls_color_selected = 0;
 
     // lolcat entries
     std::vector<std::string> lolcat_entries = {
-        "Yes",
-        "No",
+        "Enabled",
+        "Disabled",
+    };
+
+    // ls_compact entries
+    std::vector<std::string> ls_compact_entries = {
+        "Compact",
+        "Simple",
+    };
+
+    // ls_color entries
+    std::vector<std::string> ls_color_entries = {
+        "Enabled",
+        "Disabled",
     };
 
     // Get the font entries
@@ -140,21 +157,23 @@ int main()
     };
 
     // The basic input components:
-    auto input_welcome_text = Input(&welcome_text, "Type text you want when first open terminal here");
-    auto input_welcome_font = Input(&welcome_font, "Type name of font you want for welcoming message here");
+    auto input_welcome_text = Input(&welcome_text, "Here..");
     auto button_cancel = Button("Cancel [ctrl + c]", screen.ExitLoopClosure());
     auto button_save = Button("Save", on_save_button);
     auto toggle_lolcat = Toggle(&lolcat_entries, &lolcat_selected);
     auto menu_welcome_font = Menu(&welcome_font_entries, &welcome_font_selected);
+    auto toggle_ls_compact = Toggle(&ls_compact_entries, &ls_compact_selected);
+    auto toggle_ls_color = Toggle(&ls_color_entries, &ls_color_selected);
 
     // The component tree:
     auto component = Container::Vertical({
         input_welcome_text,
-        input_welcome_font,
         button_cancel,
         button_save,
         toggle_lolcat,
         menu_welcome_font,
+        toggle_ls_compact,
+        toggle_ls_color,
     });
 
     // Tweak how the component tree is rendered:
@@ -164,14 +183,30 @@ int main()
                                 welcome_font = welcome_font_entries[welcome_font_selected];
 
                                 // Modify the .bashrc file:
-                                modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f '" + welcome_font  + "' \"" + welcome_text + "\"";
+                                modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f '" + welcome_font + "' \"" + welcome_text + "\"" + lolcat_status + "\nalias ls='" + ls + "'\n";
 
                                 // toggle lolcat
                                 if(!lolcat_selected){
-                                    modified_bashrc_content += " | lolcat\n";
                                     lolcat_status = " | lolcat";
                                 } else {
                                     lolcat_status = "";
+                                }
+
+                                // toggle ls compact & ls_color
+                                if(!ls_compact_selected){
+                                    // toggle ls color
+                                    if(!ls_color_selected){
+                                        ls = "ls -lh --color=auto";
+                                    } else {
+                                        ls = "ls -lh";
+                                    }
+                                } else {
+                                    // toggle ls color
+                                    if(!ls_color_selected){
+                                        ls = "ls --color=auto";
+                                    } else {
+                                        ls = "ls";
+                                    }
                                 }
                                 
                                 return vbox({
@@ -179,17 +214,32 @@ int main()
                                         hbox({
                                             filler(), logo(), filler(),
                                         }),
-                                        window(text("Welcome text"), 
-                                            vbox({
-                                                hbox(text(" Text : "), input_welcome_text->Render()),
-                                                hbox(text(" lolcat  : "), toggle_lolcat->Render()),
-                                                hbox(text(" Font : "), menu_welcome_font->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10) | border),
-                                            })
-                                        ),
-                                        button_save->Render(),
+                                        text(""),
+                                        hbox({
+                                            // welcome text
+                                            window(text("Welcome text"), 
+                                                vbox({
+                                                    hbox(text(" Text    : "), input_welcome_text->Render()),
+                                                    hbox(text(" lolcat  : "), toggle_lolcat->Render()),
+                                                    hbox(text(" Font    : "), menu_welcome_font->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10) | border),
+                                                })
+                                            ),
+                                            // command
+                                            window(text("Command"), 
+                                                vbox({
+                                                    window(text("ls"),vbox({
+                                                       hbox(text(" List  : "), toggle_ls_compact->Render()), 
+                                                       hbox(text(" Color  : "), toggle_ls_color->Render()), 
+                                                    })),
+                                                })
+                                            ),
+                                        }),
+                                       button_save->Render(),
                                         separator(),
                                         hbox(text("log : "),vbox(text(log))),
-                                        hbox(text("command append : figlet -f '" + welcome_font + "' \"" + welcome_text + "\"" + lolcat_status)),
+                                        hbox(text("command append : ")),
+                                        hbox(text("  * figlet -f '" + welcome_font + "' \"" + welcome_text + "\"" + lolcat_status)),
+                                        hbox(text("  * alias ls=' " + ls + "'")),
                                     }) |
                                     border; });
 
