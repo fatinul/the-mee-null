@@ -62,7 +62,17 @@ int main()
     std::string bashrc_content;
     std::string modified_bashrc_content;
     std::string log;
+    std::string lolcat_status;
 
+    int lolcat_selected = 0;
+
+    // lolcat entries
+    std::vector<std::string> lolcat_entries = {
+        "Yes",
+        "No",
+    };
+
+    // Get the home directory
     const char* home_dir = getenv("HOME");
     if(home_dir == nullptr){
         log = "Error: Unable to get home directory";
@@ -93,6 +103,7 @@ int main()
     auto input_welcome_font = Input(&welcome_font, "Type name of font you want for welcoming message here");
     auto button_cancel = Button("Cancel", screen.ExitLoopClosure());
     auto button_save = Button("Save", on_save_button);
+    auto toggle_lolcat = Toggle(&lolcat_entries, &lolcat_selected);
 
     // The component tree:
     auto component = Container::Vertical({
@@ -100,22 +111,32 @@ int main()
         input_welcome_font,
         button_cancel,
         button_save,
+        toggle_lolcat,
     });
 
     // Tweak how the component tree is rendered:
     auto renderer = Renderer(component, [&]
                              {
                                 // Modify the .bashrc file:
-                                modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f " + welcome_font + " \"" + welcome_text + "\"\n";
+                                modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f " + welcome_font + " \"" + welcome_text + "\"";
+
+                                // toggle lolcat
+                                if(!lolcat_selected){
+                                    modified_bashrc_content += " | lolcat\n";
+                                    lolcat_status = " | lolcat";
+                                } else {
+                                    lolcat_status = "";
+                                }
                                 
                                 return vbox({
                                         text("Welcome to THE-MEE-NULL") | border,
                                         hbox(text(" Text : "), input_welcome_text->Render()),
                                         hbox(text(" Font name  : "), input_welcome_font->Render()),
+                                        hbox(text(" lolcat  : "), toggle_lolcat->Render()),
                                         hbox(button_cancel->Render(),button_save->Render()),
                                         separator(),
                                         hbox(text("log : "),vbox(text(log))),
-                                        hbox(text("command append : figlet -f " + welcome_font + " \"" + welcome_text + "\"")),
+                                        hbox(text("command append : figlet -f " + welcome_font + " \"" + welcome_text + "\"" + lolcat_status)),
                                     }) |
                                     border; });
 
@@ -124,8 +145,6 @@ int main()
 
 /* TODO
 ## Welcome Text
-- For now, it only append to the .bashrc file. Need to replace the figlet instead of just append.
-- option for lolcat (toggle)
 - list all the fonts available (menu)
 
 ## Quality of Life
