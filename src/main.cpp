@@ -197,12 +197,9 @@ int main()
 }
 
 /* TODO
-## Welcome Text
-- list all the fonts available (menu)
-
 ## Quality of Life
-- Make THE-MEE-NULL logo.. maybe change name lol
 - Better UX
+---- color
 
 ## ls, cd
 
