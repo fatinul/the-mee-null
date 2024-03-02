@@ -96,11 +96,16 @@ int main()
     std::string ls = "ls";
     std::string ls_compact_status;
     std::string ls_color_status;
+    std::string cd = "cd";
 
     int lolcat_selected = 0;
     int welcome_font_selected = 0;
     int ls_compact_selected = 0;
     int ls_color_selected = 0;
+    int cd_autols_selected = 0;
+    int cd_header_selected = 0;
+    int cd_header_font_selected = 0;
+    int cd_header_lolcat_selected = 0;
 
     // lolcat entries
     std::vector<std::string> lolcat_entries = {
@@ -116,6 +121,18 @@ int main()
 
     // ls_color entries
     std::vector<std::string> ls_color_entries = {
+        "Enabled",
+        "Disabled",
+    };
+
+    // cd_autols entries
+    std::vector<std::string> cd_autols_entries = {
+        "Enabled",
+        "Disabled",
+    };
+
+    // cd_autols entries
+    std::vector<std::string> cd_header_entries = {
         "Enabled",
         "Disabled",
     };
@@ -164,6 +181,8 @@ int main()
     auto menu_welcome_font = Menu(&welcome_font_entries, &welcome_font_selected);
     auto toggle_ls_compact = Toggle(&ls_compact_entries, &ls_compact_selected);
     auto toggle_ls_color = Toggle(&ls_color_entries, &ls_color_selected);
+    auto toggle_cd_autols = Toggle(&cd_autols_entries, &cd_autols_selected);
+    auto toggle_cd_header = Toggle(&cd_header_entries, &cd_header_selected);
 
     // The component tree:
     auto component = Container::Vertical({
@@ -174,6 +193,8 @@ int main()
         menu_welcome_font,
         toggle_ls_compact,
         toggle_ls_color,
+        toggle_cd_autols,
+        toggle_cd_header,
     });
 
     // Tweak how the component tree is rendered:
@@ -182,8 +203,13 @@ int main()
                                 // Get the selected font name
                                 welcome_font = welcome_font_entries[welcome_font_selected];
 
+                                // Modify cd_func
+
+
                                 // Modify the .bashrc file:
-                                modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f '" + welcome_font + "' \"" + welcome_text + "\"" + lolcat_status + "\nalias ls='" + ls + "'\n";
+                                modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f '" + welcome_font + "' \"" + welcome_text + "\"" + lolcat_status +
+                                 "\nalias ls='" + ls + 
+                                 "'\nalias cd='cd_func'\ncd_func(){\n\t" + cd + "\n}\n";
 
                                 // toggle lolcat
                                 if(!lolcat_selected){
@@ -208,7 +234,25 @@ int main()
                                         ls = "ls";
                                     }
                                 }
+
+                                // toggle cd_header
+                                if(!cd_header_selected){
+                                    // toggle cd_autols
+                                    if(!cd_autols_selected){
+                                        cd = "builtin cd \"$@\" && printf \"%s\n\" \"$(pwd | rev | cut -d'/' -f1 | rev)\" | figlet -f future | lolcat && ls";
+                                    } else {
+                                        cd = "builtin cd \"$@\" && printf \"%s\n\" \"$(pwd | rev | cut -d'/' -f1 | rev)\" | figlet -f future | lolcat";
+                                    }
+                                } else {
+                                    // toggle cd_autols
+                                    if(!cd_autols_selected){
+                                        cd = "builtin cd \"$@\" && ls";
+                                    } else {
+                                        cd = "builtin cd \"$@\"";
+                                    }
+                                }
                                 
+                                // window frame
                                 return vbox({
                                         hbox(filler(), button_cancel->Render()),
                                         hbox({
@@ -231,6 +275,10 @@ int main()
                                                        hbox(text(" List  : "), toggle_ls_compact->Render()), 
                                                        hbox(text(" Color  : "), toggle_ls_color->Render()), 
                                                     })),
+                                                    window(text("cd"),vbox({
+                                                       hbox(text(" Header  : "), toggle_cd_header->Render()), 
+                                                       hbox(text(" Auto List  : "), toggle_cd_autols->Render()), 
+                                                    })),
                                                 })
                                             ),
                                         }),
@@ -240,6 +288,7 @@ int main()
                                         hbox(text("command append : ")),
                                         hbox(text("  * figlet -f '" + welcome_font + "' \"" + welcome_text + "\"" + lolcat_status)),
                                         hbox(text("  * alias ls=' " + ls + "'")),
+                                        hbox(text("  * alias cd=' " + cd + "'")),
                                     }) |
                                     border; });
 
@@ -251,7 +300,7 @@ int main()
 - Better UX
 ---- color
 
-## ls, cd
-
+## cd, PS1
 ## easier installation
+## screen adapt
 */
