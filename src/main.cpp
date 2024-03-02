@@ -97,6 +97,9 @@ int main()
     std::string ls_compact_status;
     std::string ls_color_status;
     std::string cd = "cd";
+    std::string cd_header_font;
+    std::string cd_header_lolcat_status;
+    std::vector <std::string> cd_header_font_entries;
 
     int lolcat_selected = 0;
     int welcome_font_selected = 0;
@@ -137,15 +140,23 @@ int main()
         "Disabled",
     };
 
+    // cd_lolcat entries
+    std::vector<std::string> cd_header_lolcat_entries = {
+        "Enabled",
+        "Disabled",
+    };
+
     // Get the font entries
     for (const auto& entry : std::filesystem::directory_iterator("/usr/share/figlet")) {
         if(entry.path().extension() == ".tlf" || entry.path().extension() == ".flf"){
             welcome_font_entries.push_back(entry.path().filename().string());
+            cd_header_font_entries.push_back(entry.path().filename().string());
         }
     }
 
     // Sort the font entries
     std::sort(welcome_font_entries.begin(), welcome_font_entries.end());
+    std::sort(cd_header_font_entries.begin(), cd_header_font_entries.end());
 
     // Get the home directory
     const char* home_dir = getenv("HOME");
@@ -183,6 +194,8 @@ int main()
     auto toggle_ls_color = Toggle(&ls_color_entries, &ls_color_selected);
     auto toggle_cd_autols = Toggle(&cd_autols_entries, &cd_autols_selected);
     auto toggle_cd_header = Toggle(&cd_header_entries, &cd_header_selected);
+    auto menu_cd_header_font = Menu(&cd_header_font_entries, &cd_header_font_selected);
+    auto toggle_cd_header_lolcat = Toggle(&cd_header_lolcat_entries, &cd_header_lolcat_selected);
 
     // The component tree:
     auto component = Container::Vertical({
@@ -195,6 +208,8 @@ int main()
         toggle_ls_color,
         toggle_cd_autols,
         toggle_cd_header,
+        menu_cd_header_font,
+        toggle_cd_header_lolcat,
     });
 
     // Tweak how the component tree is rendered:
@@ -202,20 +217,25 @@ int main()
                              {
                                 // Get the selected font name
                                 welcome_font = welcome_font_entries[welcome_font_selected];
-
-                                // Modify cd_func
-
+                                cd_header_font = cd_header_font_entries[cd_header_font_selected];
 
                                 // Modify the .bashrc file:
                                 modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f '" + welcome_font + "' \"" + welcome_text + "\"" + lolcat_status +
                                  "\nalias ls='" + ls + 
                                  "'\nalias cd='cd_func'\ncd_func(){\n\t" + cd + "\n}\n";
 
-                                // toggle lolcat
+                                // toggle lolcat welcome
                                 if(!lolcat_selected){
                                     lolcat_status = " | lolcat";
                                 } else {
                                     lolcat_status = "";
+                                }
+
+                                // toggle lolcat cd_header
+                                if(!cd_header_lolcat_selected){
+                                    cd_header_lolcat_status = "' | lolcat";
+                                } else {
+                                    cd_header_lolcat_status = "'";
                                 }
 
                                 // toggle ls compact & ls_color
@@ -239,9 +259,9 @@ int main()
                                 if(!cd_header_selected){
                                     // toggle cd_autols
                                     if(!cd_autols_selected){
-                                        cd = "builtin cd \"$@\" && printf \"%s\n\" \"$(pwd | rev | cut -d'/' -f1 | rev)\" | figlet -f future | lolcat && ls";
+                                        cd = "builtin cd \"$@\" && printf \"%s\" \"$(pwd | rev | cut -d'/' -f1 | rev)\" | figlet -f '" + cd_header_font + cd_header_lolcat_status +"&& ls";
                                     } else {
-                                        cd = "builtin cd \"$@\" && printf \"%s\n\" \"$(pwd | rev | cut -d'/' -f1 | rev)\" | figlet -f future | lolcat";
+                                        cd = "builtin cd \"$@\" && printf \"%s\" \"$(pwd | rev | cut -d'/' -f1 | rev)\" | figlet -f '" + cd_header_font + cd_header_lolcat_status;
                                     }
                                 } else {
                                     // toggle cd_autols
@@ -264,21 +284,27 @@ int main()
                                             window(text("Welcome text"), 
                                                 vbox({
                                                     hbox(text(" Text    : "), input_welcome_text->Render()),
-                                                    hbox(text(" lolcat  : "), toggle_lolcat->Render()),
+                                                    hbox(text(" Lolcat  : "), toggle_lolcat->Render()),
                                                     hbox(text(" Font    : "), menu_welcome_font->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10) | border),
                                                 })
                                             ),
                                             // command
-                                            window(text("Command"), 
+                                            vbox({
+                                                window(text("ls"),vbox({
+                                                    hbox(text(" List    : "), toggle_ls_compact->Render()), 
+                                                    hbox(text(" Color   : "), toggle_ls_color->Render()), 
+                                                })),
+                                                window(text("cd"),vbox({
+                                                    hbox(text(" Header     : "), toggle_cd_header->Render()), 
+                                                    hbox(text(" Auto List  : "), toggle_cd_autols->Render()), 
+                                                    hbox(text(" Lolcat     : "), toggle_cd_header_lolcat->Render()),
+                                                    hbox(text(" Font       : "), menu_cd_header_font->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 5) | border),
+                                                })),
+                                            }),
+                                            // PS1
+                                            window(text("PS1 (Work In Progress)"), 
                                                 vbox({
-                                                    window(text("ls"),vbox({
-                                                       hbox(text(" List  : "), toggle_ls_compact->Render()), 
-                                                       hbox(text(" Color  : "), toggle_ls_color->Render()), 
-                                                    })),
-                                                    window(text("cd"),vbox({
-                                                       hbox(text(" Header  : "), toggle_cd_header->Render()), 
-                                                       hbox(text(" Auto List  : "), toggle_cd_autols->Render()), 
-                                                    })),
+                                                    text("<Preview>"),
                                                 })
                                             ),
                                         }),
@@ -300,7 +326,15 @@ int main()
 - Better UX
 ---- color
 
-## cd, PS1
+## PS1
+parse_git_branch() {
+        git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/  \1 /'
+}
+PS1='\[\033[48;2;0;135;175;38;2;255;255;255m\] \u@\h \[\033[48;2;83;85;85;38;2;0;135;175m\]\[\033[48;2;83;85;85;38;2;255;255;255m\] \w\[\033[48;2;83;85;85;38;2;255;255;255m\] \[\033[49;38;2;83;85;85m\] \[\033[38;5;208m\]$(parse_git_branch)\n\[\033[48;2;105;121;16;38;2;255;255;255m\] \$ \[\033[49;38;2;105;121;16m\]\[\033[00m\] '
+
+- setup color
+- maybe use color menu : magentaLight, YellowLight, BlueLight, GrayDark, Cyan, GreenLight, RedLight
+
 ## easier installation
 ## screen adapt
 */
