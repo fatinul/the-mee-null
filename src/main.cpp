@@ -16,6 +16,9 @@
 #include "ftxui/component/screen_interactive.hpp" // for Component, ScreenInteractive
 #include "ftxui/dom/elements.hpp"                 // for text, hbox, separator, Element, operator|, vbox, border
 #include "ftxui/util/ref.hpp"                     // for Ref
+#include "ftxui/screen/color.hpp"                 // for Color
+#include "ftxui/dom/node.hpp"                     // for Render
+#include "ftxui/screen/terminal.hpp"              // for TerminalOutput
 
 auto logo() {
     using namespace ftxui;
@@ -50,6 +53,7 @@ class TheMeeNullMarkers {
         bool inTargetSection;
 };
 
+// Assign const
 const std::string TheMeeNullMarkers::themeenull_start = "#################### THE-MEE-NULL ####################";
 const std::string TheMeeNullMarkers::themeenull_end = "######################### END ########################";
 
@@ -77,6 +81,14 @@ void deleteTheMeeNullMarkers(std::string bashrc_path)
     }
 }
 
+ftxui::Element ColorString(int red, int green, int blue){
+    return ftxui::text("RGB = (" + std::to_string(red) + ", " + std::to_string(green) + ", " + std::to_string(blue) + ")");
+}
+
+std::string PS1ColorString(int red, int green, int blue){
+    return std::to_string(red) + ";" + std::to_string(green) + ";" + std::to_string(blue);
+}
+
 int main()
 {
     using namespace ftxui;
@@ -100,6 +112,10 @@ int main()
     std::string cd_header_font;
     std::string cd_header_lolcat_status;
     std::vector <std::string> cd_header_font_entries;
+    std::string PS1;
+
+    // const func for git
+    const std::string extract_git_script = "parse_git_branch() {\n\tgit branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \\(.*\\)/  \\1 /'\n}";
 
     int lolcat_selected = 0;
     int welcome_font_selected = 0;
@@ -109,6 +125,25 @@ int main()
     int cd_header_selected = 0;
     int cd_header_font_selected = 0;
     int cd_header_lolcat_selected = 0;
+    int ps1_tab_selected = 0;
+    int ps1_hostname_selected = 0;
+    int ps1_path_selected = 0;
+    int ps1_git_selected = 0;
+    int ps1_command_selected = 0;
+
+    // RGB
+    int ps1_hostname_red = 70;
+    int ps1_hostname_green = 141;
+    int ps1_hostname_blue = 127;
+    int ps1_path_red = 36;
+    int ps1_path_green = 39;
+    int ps1_path_blue = 58;
+    int ps1_git_red = 70;
+    int ps1_git_green = 141;
+    int ps1_git_blue = 127;
+    int ps1_command_red = 36;
+    int ps1_command_green = 39;
+    int ps1_command_blue = 58;
 
     // lolcat entries
     std::vector<std::string> lolcat_entries = {
@@ -144,6 +179,14 @@ int main()
     std::vector<std::string> cd_header_lolcat_entries = {
         "Enabled",
         "Disabled",
+    };
+
+    // ps1_tab entries
+    std::vector<std::string> ps1_tab_entries = {
+        "Hostname",
+        "Path",
+        "Git",
+        "Command",
     };
 
     // Get the font entries
@@ -196,6 +239,55 @@ int main()
     auto toggle_cd_header = Toggle(&cd_header_entries, &cd_header_selected);
     auto menu_cd_header_font = Menu(&cd_header_font_entries, &cd_header_font_selected);
     auto toggle_cd_header_lolcat = Toggle(&cd_header_lolcat_entries, &cd_header_lolcat_selected);
+    auto menu_ps1_tab = Menu(&ps1_tab_entries, &ps1_tab_selected);
+    auto slider_ps1_hostname_red = Slider("R:", &ps1_hostname_red, 0, 255, 1);
+    auto slider_ps1_hostname_green = Slider("G:", &ps1_hostname_green, 0, 255, 1);
+    auto slider_ps1_hostname_blue = Slider("B:", &ps1_hostname_blue, 0, 255, 1);
+    auto slider_ps1_path_red = Slider("R:", &ps1_path_red, 0, 255, 1);
+    auto slider_ps1_path_green = Slider("G:", &ps1_path_green, 0, 255, 1);
+    auto slider_ps1_path_blue = Slider("B:", &ps1_path_blue, 0, 255, 1);
+    auto slider_ps1_git_red = Slider("R:", &ps1_git_red, 0, 255, 1);
+    auto slider_ps1_git_green = Slider("G:", &ps1_git_green, 0, 255, 1);
+    auto slider_ps1_git_blue = Slider("B:", &ps1_git_blue, 0, 255, 1);
+    auto slider_ps1_command_red = Slider("R:", &ps1_command_red, 0, 255, 1);
+    auto slider_ps1_command_green = Slider("G:", &ps1_command_green, 0, 255, 1);
+    auto slider_ps1_command_blue = Slider("B:", &ps1_command_blue, 0, 255, 1);
+
+    // container_ps1_hostname
+    auto container_ps1_hostname_rgb = Container::Vertical({
+        slider_ps1_hostname_red,
+        slider_ps1_hostname_green,
+        slider_ps1_hostname_blue,
+    });
+
+    // container_ps1_path
+    auto container_ps1_path_rgb = Container::Vertical({
+        slider_ps1_path_red,
+        slider_ps1_path_green,
+        slider_ps1_path_blue,
+    });
+
+    // container_ps1_git
+    auto container_ps1_git_rgb = Container::Vertical({
+        slider_ps1_git_red,
+        slider_ps1_git_green,
+        slider_ps1_git_blue,
+    });
+
+    // container_ps1_command
+    auto container_ps1_command_rgb = Container::Vertical({
+        slider_ps1_command_red,
+        slider_ps1_command_green,
+        slider_ps1_command_blue,
+    });
+
+    // ps1 tab container
+    auto container_ps1_tab = Container::Tab({ 
+        container_ps1_hostname_rgb,
+        container_ps1_path_rgb,
+        container_ps1_git_rgb,
+        container_ps1_command_rgb,
+    }, &ps1_tab_selected);
 
     // The component tree:
     auto component = Container::Vertical({
@@ -210,6 +302,8 @@ int main()
         toggle_cd_header,
         menu_cd_header_font,
         toggle_cd_header_lolcat,
+        menu_ps1_tab,
+        container_ps1_tab,
     });
 
     // Tweak how the component tree is rendered:
@@ -222,7 +316,8 @@ int main()
                                 // Modify the .bashrc file:
                                 modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f '" + welcome_font + "' \"" + welcome_text + "\"" + lolcat_status +
                                  "\nalias ls='" + ls + 
-                                 "'\nalias cd='cd_func'\ncd_func(){\n\t" + cd + "\n}\n";
+                                 "'\nalias cd='cd_func'\ncd_func(){\n\t" + cd + "\n}\n" + 
+                                 extract_git_script + "\n" + PS1;
 
                                 // toggle lolcat welcome
                                 if(!lolcat_selected){
@@ -271,7 +366,19 @@ int main()
                                         cd = "builtin cd \"$@\"";
                                     }
                                 }
-                                
+
+                                // modify PS1
+                                PS1 = "PS1='\\[\\033[48;2;" + PS1ColorString(ps1_hostname_red, ps1_hostname_green, ps1_hostname_blue) + 
+                                ";38;2;255;255;255m\\] \\u@\\h \\[\\033[48;2;" + PS1ColorString(ps1_path_red, ps1_path_green, ps1_path_blue) + 
+                                ";38;2;" + PS1ColorString(ps1_hostname_red, ps1_hostname_green, ps1_hostname_blue) + 
+                                "m\\]\\[\\033[48;2;" + PS1ColorString(ps1_path_red, ps1_path_green, ps1_path_blue) +
+                                ";38;2;255;255;255m\\] \\w  \\[\\033[49;38;2;" + PS1ColorString(ps1_path_red, ps1_path_green, ps1_path_blue) +
+                                "m\\] \\[\\033[38;2;" + PS1ColorString(ps1_git_red, ps1_git_green, ps1_git_blue) + 
+                                "m\\]$(parse_git_branch)\\n\\[\\033[48;2;" + PS1ColorString(ps1_command_red, ps1_command_green, ps1_command_blue) + 
+                                ";38;2;255;255;255m\\] \\$ \\[\\033[49;38;2;" + PS1ColorString(ps1_command_red, ps1_command_green, ps1_command_blue) + 
+                                "m\\]\\[\\033[00m\\] '";
+
+                                // \\[\\033[48;2;83;85;85;38;2;255;255;255m\\]
                                 // window frame
                                 return vbox({
                                         hbox(filler(), button_cancel->Render()),
@@ -304,7 +411,41 @@ int main()
                                             // PS1
                                             window(text("PS1 (Work In Progress)"), 
                                                 vbox({
-                                                    text("<Preview>"),
+                                                    hbox({
+                                                        bgcolor(Color::RGB(ps1_hostname_red, ps1_hostname_green, ps1_hostname_blue), text(" name@hostname ")),
+                                                        bgcolor(Color::RGB(ps1_path_red, ps1_path_green, ps1_path_blue), color(Color::RGB(ps1_hostname_red, ps1_hostname_green, ps1_hostname_blue), text(""))),
+                                                        bgcolor(Color::RGB(ps1_path_red, ps1_path_green, ps1_path_blue), color(Color::White, text(" the/path "))),
+                                                        color(Color::RGB(ps1_path_red, ps1_path_green, ps1_path_blue), text("")),
+                                                        color(Color::RGB(ps1_git_red, ps1_git_green, ps1_git_blue), text("   git ")),
+                                                    }),
+                                                    hbox({
+                                                        bgcolor(Color::RGB(ps1_command_red, ps1_command_green, ps1_command_blue), text(" $ ")),
+                                                        color(Color::RGB(ps1_command_red, ps1_command_green, ps1_command_blue), text("")),
+                                                        text("    "),
+                                                    }),
+                                                    filler(),
+                                                    hbox({
+                                                       text(" Hostname : "), 
+                                                       ColorString(ps1_hostname_red, ps1_hostname_green, ps1_hostname_blue),
+                                                    }),
+                                                    hbox({
+                                                       text(" Path     : "), 
+                                                       ColorString(ps1_path_red, ps1_path_green, ps1_path_blue),
+                                                    }),
+                                                    hbox({
+                                                       text(" Git      : "), 
+                                                       ColorString(ps1_git_red, ps1_git_green, ps1_git_blue),
+                                                    }),
+                                                    hbox({
+                                                       text(" Command  : "), 
+                                                       ColorString(ps1_command_red, ps1_command_green, ps1_command_blue),
+                                                    }),
+                                                    filler(),
+                                                    hbox({
+                                                        menu_ps1_tab->Render(),
+                                                        separator(),
+                                                        container_ps1_tab->Render() | flex,
+                                                    }) | border,
                                                 })
                                             ),
                                         }),
