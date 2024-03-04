@@ -26,55 +26,35 @@
 auto logo() {
     using namespace ftxui;
     
-    FILE* cmd_out;
-    char buffer[128];
-    int terminal_width, terminal_height;
-
-    cmd_out = popen("tput cols", "r");
-    if (cmd_out) {
-        fgets(buffer, sizeof(buffer), cmd_out);
-        pclose(cmd_out);
-        terminal_width = atoi(buffer) - 1;
-    }
-
-    cmd_out = popen("tput lines", "r");
-    if (cmd_out) {
-        fgets(buffer, sizeof(buffer), cmd_out);
-        pclose(cmd_out);
-        terminal_height = atoi(buffer) - 1;
-    }
-
-    if( terminal_width < 44 || terminal_height < 96){
-        return vbox({
-            text(R"(  ╓╌╌─╗              - .... . -- . . -. ..- .-.. .-..)"), 
-            text(R"( ╔▁▁▁░╚╗ |"|_|"|_ ___    ___    _____ ___ ___    ___   ___ _ _|"|"|)"), 
-            text(R"( ╛▟▲▘ ▒║ |  _|   | -_|  |___|  |     | -_| -_|  |___| |   | | | | |)"), 
-            text(R"(╭╒╼╾╮░╓╜ |_| |_|_|___|         |_|_|_|___|___|        |_|_|___|_|_|)"), 
-            text(R"(╚─────╝)"), 
-        });
-    }
-
     return vbox({
-       text(R"(                         ╔─╶╶╶╶╶╶╶╶ ──╗)"), 
-       text(R"(                        ╔╝      ░░░░░▦│)"), 
-       text(R"(                      ╒─╝          ░░▮╚╗)"), 
-       text(R"(                      ▌▌ ▂ ▂▂▂▂▂▂    ░░│)"), 
-       text(R"(                      ╘╍▂▂▂▂▂▂▂▂ ▓   ░═▀▀╗)"), 
-       text(R"(                       │░░╿ ╭╯░░░    ▊   │)"), 
-       text(R"(                      ╔─╝▗▘ ▞        ▊░  ╚╗)"), 
-       text(R"(                      ▌│ ▌  ░   ░░░  ▊░  ░│)"), 
-       text(R"(                      ▝▖░▌   ▔▲▒  ▒▒▒▊▒░ ▲│)"), 
-       text(R"(                      ╔▌ ▝▀▀▀▀▀   ▒░  ▊▒ ╔╝)"), 
-       text(R"(                      ▌ ▃▃▃▃▃▃   ░░   ╔──╝)"), 
-       text(R"(                     ▗▘▀▒░░░░░▀ ░░   ░│)"), 
-       text(R"(                     ▌│▂▂     ▂▂▂│ ░░░│)"), 
-       text(R"(                     ▝▀───────────────╝)"), 
-       text(R"(                - .... . -- . . -. ..- .-.. .-..)"), 
-       text(R"( _____ _  _ ___         __  __ ___ ___         _  _ _   _ _    _)"), 
-       text(R"(|_   _| || | __|  ___  |  \/  | __| __|  ___  | \| | | | | |  | |)"), 
-       text(R"(  | | | __ | _|  |___| | |\/| | _|| _|  |___| | .` | |_| | |__| |__)"), 
-       text(R"(  |_| |_||_|___|       |_|  |_|___|___|       |_|\_|\___/|____|____|)"), 
+        text(R"(  ╓╌╌─╗              - .... . -- . . -. ..- .-.. .-..)"), 
+        text(R"( ╔▁▁▁░╚╗ |"|_|"|_ ___    ___    _____ ___ ___    ___   ___ _ _|"|"|)"), 
+        text(R"( ╛▟▲▘ ▒║ |  _|   | -_|  |___|  |     | -_| -_|  |___| |   | | | | |)"), 
+        text(R"(╭╒╼╾╮░╓╜ |_| |_|_|___|         |_|_|_|___|___|        |_|_|___|_|_|)"), 
+        text(R"(╚─────╝)"), 
     });
+
+    // return vbox({
+    //    text(R"(                         ╔─╶╶╶╶╶╶╶╶ ──╗)"), 
+    //    text(R"(                        ╔╝      ░░░░░▦│)"), 
+    //    text(R"(                      ╒─╝          ░░▮╚╗)"), 
+    //    text(R"(                      ▌▌ ▂ ▂▂▂▂▂▂    ░░│)"), 
+    //    text(R"(                      ╘╍▂▂▂▂▂▂▂▂ ▓   ░═▀▀╗)"), 
+    //    text(R"(                       │░░╿ ╭╯░░░    ▊   │)"), 
+    //    text(R"(                      ╔─╝▗▘ ▞        ▊░  ╚╗)"), 
+    //    text(R"(                      ▌│ ▌  ░   ░░░  ▊░  ░│)"), 
+    //    text(R"(                      ▝▖░▌   ▔▲▒  ▒▒▒▊▒░ ▲│)"), 
+    //    text(R"(                      ╔▌ ▝▀▀▀▀▀   ▒░  ▊▒ ╔╝)"), 
+    //    text(R"(                      ▌ ▃▃▃▃▃▃   ░░   ╔──╝)"), 
+    //    text(R"(                     ▗▘▀▒░░░░░▀ ░░   ░│)"), 
+    //    text(R"(                     ▌│▂▂     ▂▂▂│ ░░░│)"), 
+    //    text(R"(                     ▝▀───────────────╝)"), 
+    //    text(R"(                - .... . -- . . -. ..- .-.. .-..)"), 
+    //    text(R"( _____ _  _ ___         __  __ ___ ___         _  _ _   _ _    _)"), 
+    //    text(R"(|_   _| || | __|  ___  |  \/  | __| __|  ___  | \| | | | | |  | |)"), 
+    //    text(R"(  | | | __ | _|  |___| | |\/| | _|| _|  |___| | .` | |_| | |__| |__)"), 
+    //    text(R"(  |_| |_||_|___|       |_|  |_|___|___|       |_|\_|\___/|____|____|)"), 
+    // });
 }
 
 class TheMeeNullMarkers {
@@ -110,6 +90,17 @@ void deleteTheMeeNullMarkers(std::string bashrc_path)
         std::remove(bashrc_path.c_str());
         std::rename((bashrc_path + ".tmp").c_str(), bashrc_path.c_str());
     }
+}
+
+int getTerminalHeight() {
+    struct winsize size;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
+    return size.ws_row;
+}
+int getTerminalWidth() {
+    struct winsize size;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
+    return size.ws_col;
 }
 
 ftxui::Element ColorString(int red, int green, int blue){
@@ -161,9 +152,14 @@ int main()
     int ps1_path_selected = 0;
     int ps1_git_selected = 0;
     int ps1_command_selected = 0;
+    int screen_height = 0;
+    int screen_width = 0;
 
     // modal layer
     int depth = 0;
+
+    // screen small bool
+    bool screen_small = false;
 
     // RGB
     int ps1_hostname_red = 70;
@@ -263,10 +259,17 @@ int main()
         depth = 2;
     };
 
+    // screen small to depth
+    if(screen_small){
+        depth = 3;
+    } else {
+        depth = 0;
+    }
+
     // The basic input components:
     auto input_welcome_text = Input(&welcome_text, "Here..");
-    auto button_cancel = Button("     Cancel [ctrl + c]", [&] { depth = 1; } );
-    auto button_save = Button("                                                   Save ", on_save_button);
+    auto button_quit = Button("     Quit [ctrl + c]", [&] { depth = 1; } );
+    auto button_save = Button("                                           Save ", on_save_button);
     auto toggle_lolcat = Toggle(&lolcat_entries, &lolcat_selected);
     auto menu_welcome_font = Menu(&welcome_font_entries, &welcome_font_selected);
     auto toggle_ls_compact = Toggle(&ls_compact_entries, &ls_compact_selected);
@@ -339,11 +342,11 @@ int main()
         menu_ps1_tab,
         container_ps1_tab,
         button_save,
-        button_cancel,
+        button_quit,
     });
 
-    // cancel_dialog_container
-    auto cancel_dialog_container = Container::Horizontal({
+    // quit
+    auto quit_dialog_container = Container::Horizontal({
         Button("   No   ", [&] { depth = 0; }),
         Button("   Yes  ", [&] { kill(getpid(), SIGINT); }),
     });
@@ -351,6 +354,10 @@ int main()
     // saved_dialog_container
     auto saved_dialog_container = Container::Horizontal({
         Button("        Ok  󰩐      ", [&] { depth = 0; }),
+    });
+
+    // screen_size container
+    auto screen_size_container = Container::Horizontal({
     });
 
     // Tweak how the component tree is rendered:
@@ -414,6 +421,16 @@ int main()
                                     }
                                 }
 
+                                // Check screen size
+                                screen_height = getTerminalHeight();
+                                screen_width = getTerminalWidth();
+
+                                if(screen_height < 30 || screen_width < 106){
+                                    screen_small = true;
+                                } else {
+                                    screen_small = false;
+                                }
+
                                 // modify PS1
                                 PS1 = "PS1='\\[\\033[48;2;" + PS1ColorString(ps1_hostname_red, ps1_hostname_green, ps1_hostname_blue) + 
                                 ";38;2;255;255;255m\\] \\u@\\h \\[\\033[48;2;" + PS1ColorString(ps1_path_red, ps1_path_green, ps1_path_blue) + 
@@ -425,11 +442,10 @@ int main()
                                 ";38;2;255;255;255m\\] \\$ \\[\\033[49;38;2;" + PS1ColorString(ps1_command_red, ps1_command_green, ps1_command_blue) + 
                                 "m\\]\\[\\033[00m\\] '";
 
-                                // \\[\\033[48;2;83;85;85;38;2;255;255;255m\\]
                                 // window frame
                                 return vbox({
                                         color(Color::RGB(105,105,105),
-                                        hbox(filler(), button_cancel->Render())),
+                                        hbox(filler(), button_quit->Render())),
                                         hbox({
                                             filler(), color(Color::RGB(101,83,83), logo()), filler(),
                                         }),
@@ -500,17 +516,19 @@ int main()
                                                 })
                                             ),
                                         }),
-                                        color(Color::RGB(156,175,136),
-                                       button_save->Render()),
+                                        hbox({
+                                            color(Color::RGB(255,255,255),text("(H: " + std::to_string(getTerminalHeight()) + ", W: " + std::to_string(getTerminalWidth()) + ")")) | border, 
+                                            color(Color::RGB(156,175,136),button_save->Render()) | flex ,
+                                        }),
                                     }) |
                                     border; });
     
-    // cancel dialog renderer
-    auto cancel_renderer = Renderer(cancel_dialog_container, [&] {
+    // quit dialog renderer
+    auto quit_renderer = Renderer(quit_dialog_container, [&] {
        return vbox({
-            text("Are you sure you want to cancel?"),
+            text("Are you sure you want to quit?"),
             separator(),
-            hbox({filler(), cancel_dialog_container->Render(), filler()}),
+            hbox({filler(), quit_dialog_container->Render(), filler()}),
        }); 
     });
 
@@ -524,9 +542,11 @@ int main()
        })); 
     });
 
+    
+
     auto main_container = Container::Tab({
         renderer,
-        cancel_renderer,
+        quit_renderer,
         saved_renderer,
     }, &depth);
 
@@ -536,14 +556,14 @@ int main()
         if (depth == 1){
             document = dbox({
                document,
-               cancel_renderer->Render() | borderDouble | clear_under | center, 
+               quit_renderer->Render() | borderDouble | clear_under | center, 
             });
         } else if (depth == 2){
             document = dbox({
                 document,
                 saved_renderer->Render() | borderDouble | clear_under | center,
             });
-        }
+        } 
         return document;
     });
 
@@ -553,10 +573,8 @@ int main()
 
 /* TODO
 ## easier installation
----- install.sh
 ---- edit cmake
 ---- edit tell if no figlet and lolcat
-
 
 ## Readme
 ---- explain installation and gif
