@@ -259,12 +259,14 @@ int main()
             log = "Error";
             screen.ExitLoopClosure();
         }
+
+        depth = 2;
     };
 
     // The basic input components:
     auto input_welcome_text = Input(&welcome_text, "Here..");
-    auto button_cancel = Button("Cancel [ctrl + c]", [&] { depth = 1; } );
-    auto button_save = Button("Save", on_save_button);
+    auto button_cancel = Button("     Cancel [ctrl + c]", [&] { depth = 1; } );
+    auto button_save = Button("                                                   Save ", on_save_button);
     auto toggle_lolcat = Toggle(&lolcat_entries, &lolcat_selected);
     auto menu_welcome_font = Menu(&welcome_font_entries, &welcome_font_selected);
     auto toggle_ls_compact = Toggle(&ls_compact_entries, &ls_compact_selected);
@@ -342,8 +344,13 @@ int main()
 
     // cancel_dialog_container
     auto cancel_dialog_container = Container::Horizontal({
-        Button("No", [&] { depth = 0; }),
-        Button("Yes", [&] { kill(getpid(), SIGINT); }),
+        Button("   No   ", [&] { depth = 0; }),
+        Button("   Yes  ", [&] { kill(getpid(), SIGINT); }),
+    });
+
+    // saved_dialog_container
+    auto saved_dialog_container = Container::Horizontal({
+        Button("        Ok  󰩐      ", [&] { depth = 0; }),
     });
 
     // Tweak how the component tree is rendered:
@@ -354,7 +361,7 @@ int main()
                                 cd_header_font = cd_header_font_entries[cd_header_font_selected];
 
                                 // Modify the .bashrc file:
-                                modified_bashrc_content = "\necho \"\"\necho \"\"\nfiglet -f '" + welcome_font + "' \"" + welcome_text + "\"" + lolcat_status +
+                                modified_bashrc_content = "\necho \"\"\nfiglet -f '" + welcome_font + "' \"" + welcome_text + "\"" + lolcat_status +
                                  "\nalias ls='" + ls + 
                                  "'\nalias cd='cd_func'\ncd_func(){\n\t" + cd + "\n}\n" + 
                                  extract_git_script + "\n" + PS1;
@@ -421,35 +428,39 @@ int main()
                                 // \\[\\033[48;2;83;85;85;38;2;255;255;255m\\]
                                 // window frame
                                 return vbox({
-                                        hbox(filler(), button_cancel->Render()),
+                                        color(Color::RGB(105,105,105),
+                                        hbox(filler(), button_cancel->Render())),
                                         hbox({
-                                            filler(), logo(), filler(),
+                                            filler(), color(Color::RGB(101,83,83), logo()), filler(),
                                         }),
                                         text(""),
                                         hbox({
                                             // welcome text
-                                            window(text("Welcome text"), 
+                                            color((Color::RGB(237,184,139)),
+                                            window(text("Welcome text 󱠡 "), 
                                                 vbox({
                                                     hbox(text(" Text    : "), input_welcome_text->Render()),
                                                     hbox(text(" Lolcat  : "), toggle_lolcat->Render()),
                                                     hbox(text(" Font    : "), menu_welcome_font->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10) | border),
-                                                })
+                                                }))
                                             ),
                                             // command
                                             vbox({
-                                                window(text("ls"),vbox({
+                                                color((Color::RGB(110,136,148)),
+                                                window(text("ls  "),vbox({
                                                     hbox(text(" List    : "), toggle_ls_compact->Render()), 
                                                     hbox(text(" Color   : "), toggle_ls_color->Render()), 
-                                                })),
-                                                window(text("cd"),vbox({
+                                                }))),
+                                                color(Color::RGB(153,88,42),
+                                                window(text("cd  "),vbox({
                                                     hbox(text(" Header     : "), toggle_cd_header->Render()), 
                                                     hbox(text(" Auto List  : "), toggle_cd_autols->Render()), 
                                                     hbox(text(" Lolcat     : "), toggle_cd_header_lolcat->Render()),
                                                     hbox(text(" Font       : "), menu_cd_header_font->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 5) | border),
-                                                })),
+                                                }))),
                                             }),
                                             // PS1
-                                            window(text("PS1"), 
+                                            window(text("PS1 󰸻 "), 
                                                 vbox({
                                                     hbox({
                                                         bgcolor(Color::RGB(ps1_hostname_red, ps1_hostname_green, ps1_hostname_blue), text(" name@hostname ")),
@@ -489,11 +500,12 @@ int main()
                                                 })
                                             ),
                                         }),
-                                       button_save->Render(),
-                                       text(log),
+                                        color(Color::RGB(156,175,136),
+                                       button_save->Render()),
                                     }) |
                                     border; });
     
+    // cancel dialog renderer
     auto cancel_renderer = Renderer(cancel_dialog_container, [&] {
        return vbox({
             text("Are you sure you want to cancel?"),
@@ -502,9 +514,20 @@ int main()
        }); 
     });
 
+    // saved dialog renderer
+    auto saved_renderer = Renderer(saved_dialog_container, [&] {
+       return color(Color::RGB(156,175,136),vbox({
+            text("                    SAVED!"),
+            text("Open your terminal and see your masterpiece!"),
+            separator(),
+            hbox({filler(), saved_dialog_container->Render(), filler()}),
+       })); 
+    });
+
     auto main_container = Container::Tab({
         renderer,
         cancel_renderer,
+        saved_renderer,
     }, &depth);
 
     auto main_renderer = Renderer(main_container, [&] {
@@ -513,7 +536,12 @@ int main()
         if (depth == 1){
             document = dbox({
                document,
-               cancel_renderer->Render() | border | clear_under | center, 
+               cancel_renderer->Render() | borderDouble | clear_under | center, 
+            });
+        } else if (depth == 2){
+            document = dbox({
+                document,
+                saved_renderer->Render() | borderDouble | clear_under | center,
             });
         }
         return document;
@@ -524,14 +552,15 @@ int main()
 }
 
 /* TODO
-## Quality of Life
-- Better UX
----- modaldialog 
----- color
----- keyboard navigation
+## easier installation
+---- install.sh
+---- edit cmake
+---- edit tell if no figlet and lolcat
+
 
 ## Readme
 ---- explain installation and gif
 
-## easier installation
+## Release package
+---- cmake
 */
