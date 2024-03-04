@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include <csignal>
 #include <filesystem>
 #include <vector>
 #include <algorithm>
@@ -161,6 +162,9 @@ int main()
     int ps1_git_selected = 0;
     int ps1_command_selected = 0;
 
+    // modal layer
+    int depth = 0;
+
     // RGB
     int ps1_hostname_red = 70;
     int ps1_hostname_green = 141;
@@ -259,7 +263,7 @@ int main()
 
     // The basic input components:
     auto input_welcome_text = Input(&welcome_text, "Here..");
-    auto button_cancel = Button("Cancel [ctrl + c]", screen.ExitLoopClosure());
+    auto button_cancel = Button("Cancel [ctrl + c]", [&] { depth = 1; } );
     auto button_save = Button("Save", on_save_button);
     auto toggle_lolcat = Toggle(&lolcat_entries, &lolcat_selected);
     auto menu_welcome_font = Menu(&welcome_font_entries, &welcome_font_selected);
@@ -334,6 +338,12 @@ int main()
         container_ps1_tab,
         button_save,
         button_cancel,
+    });
+
+    // cancel_dialog_container
+    auto cancel_dialog_container = Container::Horizontal({
+        Button("No", [&] { depth = 0; }),
+        Button("Yes", [&] { kill(getpid(), SIGINT); }),
     });
 
     // Tweak how the component tree is rendered:
@@ -483,16 +493,45 @@ int main()
                                        text(log),
                                     }) |
                                     border; });
+    
+    auto cancel_renderer = Renderer(cancel_dialog_container, [&] {
+       return vbox({
+            text("Are you sure you want to cancel?"),
+            separator(),
+            hbox({filler(), cancel_dialog_container->Render(), filler()}),
+       }); 
+    });
 
-    screen.Loop(renderer);
+    auto main_container = Container::Tab({
+        renderer,
+        cancel_renderer,
+    }, &depth);
+
+    auto main_renderer = Renderer(main_container, [&] {
+        Element document = renderer->Render();
+
+        if (depth == 1){
+            document = dbox({
+               document,
+               cancel_renderer->Render() | border | clear_under | center, 
+            });
+        }
+        return document;
+    });
+
+    screen.Loop(main_renderer);
+    return 0;
 }
 
 /* TODO
 ## Quality of Life
 - Better UX
----- messagedialog 
+---- modaldialog 
 ---- color
 ---- keyboard navigation
+
+## Readme
+---- explain installation and gif
 
 ## easier installation
 */
