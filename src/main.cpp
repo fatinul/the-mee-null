@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <vector>
 #include <algorithm>
+#include <sys/ioctl.h>
+#include <sys/unistd.h>
 
 #include <memory> // for allocator, __shared_ptr_access
 #include <string> // for char_traits, operator+, string, basic_string
@@ -22,6 +24,34 @@
 
 auto logo() {
     using namespace ftxui;
+    
+    FILE* cmd_out;
+    char buffer[128];
+    int terminal_width, terminal_height;
+
+    cmd_out = popen("tput cols", "r");
+    if (cmd_out) {
+        fgets(buffer, sizeof(buffer), cmd_out);
+        pclose(cmd_out);
+        terminal_width = atoi(buffer) - 1;
+    }
+
+    cmd_out = popen("tput lines", "r");
+    if (cmd_out) {
+        fgets(buffer, sizeof(buffer), cmd_out);
+        pclose(cmd_out);
+        terminal_height = atoi(buffer) - 1;
+    }
+
+    if( terminal_width < 44 || terminal_height < 96){
+        return vbox({
+            text(R"(  ╓╌╌─╗              - .... . -- . . -. ..- .-.. .-..)"), 
+            text(R"( ╔▁▁▁░╚╗ |"|_|"|_ ___    ___    _____ ___ ___    ___   ___ _ _|"|"|)"), 
+            text(R"( ╛▟▲▘ ▒║ |  _|   | -_|  |___|  |     | -_| -_|  |___| |   | | | | |)"), 
+            text(R"(╭╒╼╾╮░╓╜ |_| |_|_|___|         |_|_|_|___|___|        |_|_|___|_|_|)"), 
+            text(R"(╚─────╝)"), 
+        });
+    }
 
     return vbox({
        text(R"(                         ╔─╶╶╶╶╶╶╶╶ ──╗)"), 
@@ -292,18 +322,18 @@ int main()
     // The component tree:
     auto component = Container::Vertical({
         input_welcome_text,
-        button_cancel,
-        button_save,
         toggle_lolcat,
         menu_welcome_font,
         toggle_ls_compact,
         toggle_ls_color,
-        toggle_cd_autols,
         toggle_cd_header,
-        menu_cd_header_font,
+        toggle_cd_autols,
         toggle_cd_header_lolcat,
+        menu_cd_header_font,
         menu_ps1_tab,
         container_ps1_tab,
+        button_save,
+        button_cancel,
     });
 
     // Tweak how the component tree is rendered:
@@ -409,7 +439,7 @@ int main()
                                                 })),
                                             }),
                                             // PS1
-                                            window(text("PS1 (Work In Progress)"), 
+                                            window(text("PS1"), 
                                                 vbox({
                                                     hbox({
                                                         bgcolor(Color::RGB(ps1_hostname_red, ps1_hostname_green, ps1_hostname_blue), text(" name@hostname ")),
@@ -450,12 +480,7 @@ int main()
                                             ),
                                         }),
                                        button_save->Render(),
-                                        separator(),
-                                        hbox(text("log : "),vbox(text(log))),
-                                        hbox(text("command append : ")),
-                                        hbox(text("  * figlet -f '" + welcome_font + "' \"" + welcome_text + "\"" + lolcat_status)),
-                                        hbox(text("  * alias ls=' " + ls + "'")),
-                                        hbox(text("  * alias cd=' " + cd + "'")),
+                                       text(log),
                                     }) |
                                     border; });
 
@@ -465,17 +490,9 @@ int main()
 /* TODO
 ## Quality of Life
 - Better UX
+---- messagedialog 
 ---- color
-
-## PS1
-parse_git_branch() {
-        git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/  \1 /'
-}
-PS1='\[\033[48;2;0;135;175;38;2;255;255;255m\] \u@\h \[\033[48;2;83;85;85;38;2;0;135;175m\]\[\033[48;2;83;85;85;38;2;255;255;255m\] \w\[\033[48;2;83;85;85;38;2;255;255;255m\] \[\033[49;38;2;83;85;85m\] \[\033[38;5;208m\]$(parse_git_branch)\n\[\033[48;2;105;121;16;38;2;255;255;255m\] \$ \[\033[49;38;2;105;121;16m\]\[\033[00m\] '
-
-- setup color
-- maybe use color menu : magentaLight, YellowLight, BlueLight, GrayDark, Cyan, GreenLight, RedLight
+---- keyboard navigation
 
 ## easier installation
-## screen adapt
 */
