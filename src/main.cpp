@@ -572,10 +572,6 @@ int main()
 }
 
 /* TODO
-## easier installation
----- edit cmake
----- edit tell if no figlet and lolcat
-
 ## Readme
 ---- explain installation and gif
 
