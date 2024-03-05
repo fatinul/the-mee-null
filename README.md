@@ -12,11 +12,6 @@ Don't worry I will help you. Just run this terminal app in your terminal and cho
 
 > Shout out to [ftxui](https://github.com/ArthurSonzogni/FTXUI) for making this Terminal User Interface (TUI) app possible.
 
-## Table of Contents 🏓
-* [**Prerequisites**](#prerequisites)
-* [**Installation**](#install)
-* [**Fonts**](#fonts)
-
 ## Prerequisites ✅
 1. [nerd font](https://github.com/ryanoasis/nerd-fonts.git)
 1. [figlet](https://github.com/cmatsuoka/figlet)
