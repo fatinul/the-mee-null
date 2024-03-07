@@ -4,13 +4,11 @@
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/fatinul/the-mee-null)
 [![MIT license](https://img.shields.io/github/license/tusharpm/tiles)](http://opensource.org/licenses/MIT)
 
-Too lazy to create a world class bash terminal? 🦥
-
-Don't worry I will help you. Just run this terminal app in your terminal and choose how you like! 😎👍
-
+Terminal Application to create outstanding terminal using [ftxui](https://github.com/ArthurSonzogni/FTXUI). 😎👍
 ![App preview](Assets/homescreen.gif)
 
 > Shout out to [ftxui](https://github.com/ArthurSonzogni/FTXUI) for making this Terminal User Interface (TUI) app possible.
+
 
 ## Prerequisites ✅
 1. [nerd font](https://github.com/ryanoasis/nerd-fonts.git)
@@ -23,6 +21,7 @@ If you are using any debian based distros `ubuntu/pop os/..`. You can copy this
 ```
 sudo apt install figlet lolcat gcc cmake
 ```
+
 
 ## Install 🔧
 * You need to set your terminal's font into `nerdfont` since it include amazing icons.
@@ -39,6 +38,8 @@ sudo ./install.sh
 * Congratulations! You can now run `the-mee-null` in your command line.
 
 > INFO: The-mee-null only work when the height of the terminal window is at least 30 lines.
+
+
 
 ## Fonts 💬
 > INFO: Figlet only support .tlf and .flf only as far as I know
