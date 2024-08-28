@@ -40,7 +40,10 @@ sudo ./install.sh
 
 > INFO: The-mee-null only work when the height of the terminal window is at least 30 lines.
 
-
+* If everything works fine, you can just delete `the-mee-null` directory
+```
+rm -rf /the-mee-null
+```
 
 ## Fonts 💬
 > INFO: Figlet only support .tlf and .flf only as far as I know
