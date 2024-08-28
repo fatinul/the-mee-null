@@ -31,6 +31,7 @@ sudo apt install figlet lolcat gcc cmake
 * After nerdfont, you can copy this command into your command line to get `the-mee-null` installed.
 ```
 git clone https://github.com/fatinul/the-mee-null
+cd the-mee-null
 chmod +x install.sh
 sudo ./install.sh
 ```
