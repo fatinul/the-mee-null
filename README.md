@@ -58,3 +58,9 @@ rm -rf /the-mee-null
 sudo mv Downloads/<font-name>.flf /usr/bin/share/figlet
 ```
 
+## Uninstall 😔
+* If you want to uninstall the program. You can simply run the script below but make sure you are inside the the-mee-null directory.
+```
+chmod +x uninstall.sh
+sudo ./uninstall.sh
+```
