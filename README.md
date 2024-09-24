@@ -27,6 +27,14 @@ sudo apt install figlet lolcat gcc cmake
 * You need to set your terminal's font into `nerdfont` since it include amazing icons.
     - If you haven't installed `nerdfont`, go check this [youtube video (3 min)](https://www.youtube.com/watch?v=cBOaYidGaCQ).
     - If you want to preview the `nerdfont` that you like, you can check [programmingfonts](https://www.programmingfonts.org/).
+    - If you want fast, just copy paste the command below then change the font of your terminal at their settings/config files
+ ```
+wget -P ~/.local/share/fonts https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/JetBrainsMono.zip \
+&& cd ~/.local/share/fonts \
+&& unzip JetBrainsMono.zip \
+&& rm JetBrainsMono.zip \
+&& fc-cache -fv
+```
 
 * After nerdfont, you can copy this command into your command line to get `the-mee-null` installed.
 ```
